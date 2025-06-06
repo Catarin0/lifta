@@ -9,29 +9,18 @@ import {
   getDocs,
   QueryDocumentSnapshot
 } from "firebase/firestore";
-import { app } from "./auth";
+import { initializeApp, getApps } from "firebase/app";
 
+// Initialize Firestore independently to avoid circular dependencies
+const firebaseConfig = {
+  projectId: "lifta-2009a",
+  apiKey: "AIzaSyAgL1tR0ODpV5RwnpL2j3EjctEDrVlQJxo",
+};
+
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);
 
-interface FinanceData {
-  totalBalance: number;
-  monthlyIncome: number;
-  monthlyExpenses: number;
-}
-
-interface Expense {
-  id?: string;
-  category: string;
-  value: number;
-  description: string;
-  date: string;
-}
-
-interface HealthData {
-  dailySteps: number;
-  heartRate: number;
-  sleepHours: number;
-}
+import type { FinanceData, Expense, HealthData } from "./types";
 
 // Finance data operations
 export const updateFinanceData = async (userId: string, data: FinanceData) => {

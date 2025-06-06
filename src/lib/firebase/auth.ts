@@ -9,6 +9,7 @@ export const app = getApps().length === 0 ? initializeApp({
 
 const auth = getAuth(app);
 
+// Import db after auth is initialized to prevent circular dependencies
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "./db";
 
