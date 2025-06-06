@@ -37,10 +37,14 @@ export const getFinanceData = async (userId: string): Promise<FinanceData | null
 // Expense operations
 export const addExpense = async (userId: string, expense: Omit<Expense, 'id'>) => {
   const expensesRef = collection(db, "users", userId, "expenses");
-  const docRef = await addDoc(expensesRef, {
-    ...expense,
-    date: expense.date || new Date().toISOString()
-  });
+  // Ensure expense data is properly formatted
+  const expenseData = {
+    category: expense.category,
+    value: Number(expense.value),
+    description: expense.description,
+    date: expense.date
+  };
+  const docRef = await addDoc(expensesRef, expenseData);
   return docRef.id;
 };
 
