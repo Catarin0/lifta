@@ -205,10 +205,10 @@ export function FinanceTab() {
               </Button>
             )}
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <Card>
+          <div className="grid sm:grid-cols-3 grid-cols-1 gap-4">
+            <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
               <CardContent className="p-4">
-                <div className="text-sm font-medium">Total Balance</div>
+                <div className="text-sm font-medium text-muted-foreground">Total Balance</div>
                 {isEditing ? (
                   <Input
                     type="number"
@@ -221,9 +221,9 @@ export function FinanceTab() {
                 )}
               </CardContent>
             </Card>
-            <Card>
+            <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
               <CardContent className="p-4">
-                <div className="text-sm font-medium">Monthly Income</div>
+                <div className="text-sm font-medium text-muted-foreground">Monthly Income</div>
                 {isEditing ? (
                   <Input
                     type="number"
@@ -236,9 +236,9 @@ export function FinanceTab() {
                 )}
               </CardContent>
             </Card>
-            <Card>
+            <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
               <CardContent className="p-4">
-                <div className="text-sm font-medium">Monthly Expenses</div>
+                <div className="text-sm font-medium text-muted-foreground">Monthly Expenses</div>
                 <div className="text-2xl font-bold">{formatCurrency(financeData.monthlyExpenses)}</div>
               </CardContent>
             </Card>
@@ -258,7 +258,7 @@ export function FinanceTab() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Expenses</h3>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-start sm:items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
@@ -317,7 +317,7 @@ export function FinanceTab() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80">
+                <PopoverContent className="w-[min(80vw,320px)] p-4 md:w-80">
               <div className="grid gap-4">
                 <div className="space-y-2">
                   <h4 className="font-medium leading-none">Add New Expense</h4>
@@ -357,7 +357,7 @@ export function FinanceTab() {
                       type="number"
                       value={newExpense.value || ''}
                       onChange={(e) => setNewExpense({...newExpense, value: Number(e.target.value)})}
-                      className="h-8"
+                      className="h-10"
                     />
                   </div>
                   <div className="grid gap-2">
@@ -389,9 +389,9 @@ export function FinanceTab() {
             </div>
           </div>
           
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
+          <div className="border rounded-lg overflow-x-auto">
+            <Table className="min-w-[600px]">
+              <TableHeader className="bg-background/50">
                 <TableRow>
                   <TableHead>Category</TableHead>
                   <TableHead>Amount</TableHead>
