@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { auth } from "@/lib/firebase/auth";
 import {
@@ -18,7 +19,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Plus } from "lucide-react";
+import { Plus, Minus, ChevronDown } from "lucide-react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { 
@@ -59,6 +67,7 @@ export function FinanceTab() {
     category: ''
   });
   const [error, setError] = useState<string | null>(null);
+  const [alert, setAlert] = useState<{type: 'default' | 'destructive', message: string} | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -158,6 +167,13 @@ export function FinanceTab() {
       const updatedUserDetails = await getUserDetails(userId);
       if (updatedUserDetails) setUserDetails(updatedUserDetails);
 
+      // Show success alert
+      setAlert({
+        type: 'default',
+        message: 'Expense added successfully'
+      });
+      setTimeout(() => setAlert(null), 3000);
+
       // Reset form
       setNewExpense({
         category: '',
@@ -190,8 +206,20 @@ export function FinanceTab() {
       // Get updated user details after expense is deleted
       const updatedUserDetails = await getUserDetails(userId);
       if (updatedUserDetails) setUserDetails(updatedUserDetails);
+
+      // Show success alert
+      setAlert({
+        type: 'default',
+        message: 'Expense deleted successfully'
+      });
+      setTimeout(() => setAlert(null), 3000);
     } catch (error) {
       console.error("Error deleting expense:", error);
+      setAlert({
+        type: 'destructive',
+        message: 'Failed to delete expense'
+      });
+      setTimeout(() => setAlert(null), 3000);
     }
   };
 
@@ -203,8 +231,15 @@ export function FinanceTab() {
   };
 
   return (
-    <Card>
-      <CardContent className="p-6 space-y-6">
+    <div className="space-y-6">
+        {alert && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 w-full max-w-md z-50">
+            <Alert variant={alert.type}>
+              <AlertTitle>{alert.type === 'default' ? 'Success' : 'Error'}</AlertTitle>
+              <AlertDescription>{alert.message}</AlertDescription>
+            </Alert>
+          </div>
+        )}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Financial Overview</h2>
@@ -214,43 +249,43 @@ export function FinanceTab() {
               </Button>
             )}
           </div>
-          <div className="grid sm:grid-cols-3 grid-cols-1 gap-4">
-            <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
-              <CardContent className="p-4">
-                <div className="text-sm font-medium text-muted-foreground">Total Balance</div>
+          <div className="grid grid-cols-3 gap-1 sm:gap-2">
+            <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50 sm:h-full min-h-[80px]">
+              <CardContent className="p-1.5 sm:p-3">
+                <div className="text-[10px] sm:text-xs font-medium text-muted-foreground">Balance</div>
                 {isEditing ? (
                   <Input
                     type="number"
                     value={userDetails.totalBalance}
                     onChange={(e) => setUserDetails({ ...userDetails, totalBalance: Number(e.target.value) })}
-                    className="mt-2"
+                    className="mt-0.5 h-6 sm:h-7 text-xs"
                   />
                 ) : (
-                  <div className="text-2xl font-bold">{formatCurrency(userDetails.totalBalance)}</div>
+                  <div className="text-sm sm:text-xl font-bold mt-0.5 sm:mt-1">{formatCurrency(userDetails.totalBalance)}</div>
                 )}
               </CardContent>
             </Card>
-            <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
-              <CardContent className="p-4">
-                <div className="text-sm font-medium text-muted-foreground">Monthly Income</div>
+            <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50 sm:h-full min-h-[80px]">
+              <CardContent className="p-1.5 sm:p-3">
+                <div className="text-[10px] sm:text-xs font-medium text-muted-foreground">Income</div>
                 {isEditing ? (
                   <Input
                     type="number"
                     value={userDetails.monthlyIncome}
                     onChange={(e) => setUserDetails({ ...userDetails, monthlyIncome: Number(e.target.value) })}
-                    className="mt-2"
+                    className="mt-0.5 h-6 sm:h-7 text-xs"
                   />
                 ) : (
-                  <div className="text-2xl font-bold">{formatCurrency(userDetails.monthlyIncome)}</div>
+                  <div className="text-sm sm:text-xl font-bold mt-0.5 sm:mt-1">{formatCurrency(userDetails.monthlyIncome)}</div>
                 )}
               </CardContent>
             </Card>
-            <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
-              <CardContent className="p-4">
-                <div className="text-sm font-medium text-muted-foreground">Monthly Expenses</div>
-                <div className="text-2xl font-bold">{formatCurrency(currentMonthTotal)}</div>
+            <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50 sm:h-full min-h-[80px]">
+              <CardContent className="p-1.5 sm:p-3">
+                <div className="text-[10px] sm:text-xs font-medium text-muted-foreground">Expenses</div>
+                <div className="text-sm sm:text-xl font-bold mt-0.5 sm:mt-1">{formatCurrency(currentMonthTotal)}</div>
                 {percentageChange !== null && (
-                  <div className={`text-sm mt-1 ${percentageChange > 0 ? 'text-red-500' : percentageChange < 0 ? 'text-green-500' : 'text-muted-foreground'}`}>
+                  <div className={`text-[9px] sm:text-xs mt-0.5 sm:mt-1 ${percentageChange > 0 ? 'text-red-500' : percentageChange < 0 ? 'text-green-500' : 'text-muted-foreground'}`}>
                     {percentageChange > 0 ? '+' : ''}{percentageChange.toFixed(1)}%
                   </div>
                 )}
@@ -270,12 +305,12 @@ export function FinanceTab() {
         </div>
 
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <h3 className="text-lg font-semibold">Expenses</h3>
-            <div className="flex flex-wrap items-start sm:items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" size="sm" className="text-xs">
                     {filters.year || "Select Year"}
                   </Button>
                 </DropdownMenuTrigger>
@@ -290,7 +325,7 @@ export function FinanceTab() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" size="sm" className="text-xs">
                     {filters.month ? new Date(2000, filters.month - 1).toLocaleString('default', { month: 'long' }) : "Select Month"}
                   </Button>
                 </DropdownMenuTrigger>
@@ -307,7 +342,7 @@ export function FinanceTab() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" size="sm" className="text-xs">
                     {filters.category || "All Categories"}
                   </Button>
                 </DropdownMenuTrigger>
@@ -327,7 +362,7 @@ export function FinanceTab() {
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button size="icon" className="h-8 w-8 shrink-0">
+                  <Button size="sm" className="h-6 w-6 sm:h-8 sm:w-8 shrink-0">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </PopoverTrigger>
@@ -404,39 +439,77 @@ export function FinanceTab() {
           </div>
           
           <div className="border rounded-lg overflow-x-auto">
-            <Table className="min-w-[600px]">
+            <Table className="min-w-full sm:min-w-[600px] text-xs sm:text-sm">
               <TableHeader className="bg-background/50">
                 <TableRow>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="px-2 sm:px-4 py-2 font-medium">Category</TableHead>
+                  <TableHead className="px-2 sm:px-4 py-2 font-medium text-center">Amount</TableHead>
+                  <TableHead className="hidden sm:table-cell px-4 py-2 font-medium">Description</TableHead>
+                  <TableHead className="hidden sm:table-cell px-2 sm:px-4 py-2 font-medium whitespace-nowrap">Date</TableHead>
+                  <TableHead className="hidden sm:table-cell px-2 sm:px-4 py-2 font-medium">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredExpenses.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell>{expense.category}</TableCell>
-                    <TableCell>{formatCurrency(expense.value)}</TableCell>
-                    <TableCell>{expense.description}</TableCell>
-                    <TableCell>{expense.date.split('T')[0]}</TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => expense.id && handleDeleteExpense(expense.id)}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  <Drawer key={expense.id}>
+                    <DrawerTrigger asChild>
+                      <TableRow className="cursor-pointer hover:bg-muted/50">
+                        <TableCell className="px-2 sm:px-4 py-2 font-medium">{expense.category}</TableCell>
+                        <TableCell className="px-2 sm:px-4 py-2 text-center">{formatCurrency(expense.value)}</TableCell>
+                        <TableCell className="hidden sm:table-cell px-4 py-2 text-muted-foreground">{expense.description}</TableCell>
+                        <TableCell className="hidden sm:table-cell px-2 sm:px-4 py-2 whitespace-nowrap text-muted-foreground">
+                          {expense.date.split('T')[0]}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell px-2 sm:px-4 py-2">
+                          <Button 
+                            variant="destructive" 
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              expense.id && handleDeleteExpense(expense.id);
+                            }}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                        <TableCell className="sm:hidden px-1 py-1">
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        </TableCell>
+                      </TableRow>
+                    </DrawerTrigger>
+                    <DrawerContent className="sm:hidden">
+                      <DrawerHeader>
+                        <DrawerTitle>{expense.category}</DrawerTitle>
+                      </DrawerHeader>
+                      <div className="p-4 space-y-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Description</p>
+                          <p>{expense.description || 'No description'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Date</p>
+                          <p>{expense.date.split('T')[0]}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Amount</p>
+                          <p>{formatCurrency(expense.value)}</p>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          className="w-full"
+                          onClick={() => expense.id && handleDeleteExpense(expense.id)}
+                        >
+                          Delete Expense
+                        </Button>
+                      </div>
+                    </DrawerContent>
+                  </Drawer>
                 ))}
               </TableBody>
             </Table>
           </div>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
