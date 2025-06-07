@@ -284,11 +284,11 @@ export function FinanceTab() {
               <CardContent className="p-1.5 sm:p-3">
                 <div className="text-[10px] sm:text-xs font-medium text-muted-foreground">Expenses</div>
                 <div className="text-sm sm:text-xl font-bold mt-0.5 sm:mt-1">{formatCurrency(currentMonthTotal)}</div>
-                {percentageChange !== null && (
+                {percentageChange !== null ? (
                   <div className={`text-[9px] sm:text-xs mt-0.5 sm:mt-1 ${percentageChange > 0 ? 'text-red-500' : percentageChange < 0 ? 'text-green-500' : 'text-muted-foreground'}`}>
                     {percentageChange > 0 ? '+' : ''}{percentageChange.toFixed(1)}%
                   </div>
-                )}
+                ) : null}
               </CardContent>
             </Card>
           </div>
