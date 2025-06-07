@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FinanceTab } from "@/components/tabs/finance-tab";
 import { auth, getCurrentUser } from "@/lib/firebase/auth";
 import { AvatarMenu } from "@/components/avatar-menu";
+import { ModeToggle } from "@/components/mode-toggle";
 import { onAuthStateChanged } from "firebase/auth";
 import { getUserDetails } from "@/lib/firebase/db";
 
@@ -43,7 +44,10 @@ export default function Home() {
             <h1 className="text-2xl font-bold">Dashboard</h1>
             <p className="text-muted-foreground">Welcome back, {firstName}</p>
           </div>
-          <AvatarMenu />
+          <div className="flex items-center gap-4">
+            <ModeToggle />
+            <AvatarMenu />
+          </div>
         </div>
         
         <div className="w-full">

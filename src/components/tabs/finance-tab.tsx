@@ -77,13 +77,35 @@ export function FinanceTab() {
     loadData();
   }, []);
 
-  const filteredExpenses = expenses.filter(expense => {
-    const expenseDate = new Date(expense.date);
-    const matchesYear = expenseDate.getFullYear() === filters.year;
-    const matchesMonth = expenseDate.getMonth() + 1 === filters.month;
-    const matchesCategory = !filters.category || expense.category === filters.category;
-    return matchesYear && matchesMonth && matchesCategory;
-  });
+  const getExpensesForMonth = (year: number, month: number) => {
+    return expenses.filter(expense => {
+      const expenseDate = new Date(expense.date);
+      const matchesYear = expenseDate.getFullYear() === year;
+      const matchesMonth = expenseDate.getMonth() + 1 === month;
+      const matchesCategory = !filters.category || expense.category === filters.category;
+      return matchesYear && matchesMonth && matchesCategory;
+    });
+  };
+
+  const filteredExpenses = getExpensesForMonth(filters.year, filters.month);
+
+  // Get previous month's expenses
+  const getPreviousMonthExpenses = () => {
+    const prevMonth = filters.month === 1 ? 12 : filters.month - 1;
+    const prevYear = filters.month === 1 ? filters.year - 1 : filters.year;
+    return getExpensesForMonth(prevYear, prevMonth);
+  };
+
+  const currentMonthTotal = filteredExpenses.reduce((sum, exp) => sum + exp.value, 0);
+  const previousMonthTotal = getPreviousMonthExpenses().reduce((sum, exp) => sum + exp.value, 0);
+  
+  const getPercentageChange = () => {
+    if (previousMonthTotal === 0) return null;
+    const change = ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100;
+    return change;
+  };
+
+  const percentageChange = getPercentageChange();
 
   const handleSaveUserDetails = async () => {
     const userId = auth.currentUser?.uid;
@@ -226,7 +248,12 @@ export function FinanceTab() {
             <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
               <CardContent className="p-4">
                 <div className="text-sm font-medium text-muted-foreground">Monthly Expenses</div>
-                <div className="text-2xl font-bold">{formatCurrency(filteredExpenses.reduce((sum, exp) => sum + exp.value, 0))}</div>
+                <div className="text-2xl font-bold">{formatCurrency(currentMonthTotal)}</div>
+                {percentageChange !== null && (
+                  <div className={`text-sm mt-1 ${percentageChange > 0 ? 'text-red-500' : percentageChange < 0 ? 'text-green-500' : 'text-muted-foreground'}`}>
+                    {percentageChange > 0 ? '+' : ''}{percentageChange.toFixed(1)}%
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
