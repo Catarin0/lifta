@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinanceTab } from "@/components/tabs/finance-tab";
-import { HealthTab } from "@/components/tabs/health-tab";
 import { auth, getCurrentUser } from "@/lib/firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -45,18 +43,9 @@ export default function Home() {
           <Button variant="outline" onClick={handleLogout}>Sign Out</Button>
         </div>
         
-        <Tabs defaultValue="finance" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="finance">Finance</TabsTrigger>
-            <TabsTrigger value="health">Health</TabsTrigger>
-          </TabsList>
-          <TabsContent value="finance">
-            <FinanceTab />
-          </TabsContent>
-          <TabsContent value="health">
-            <HealthTab />
-          </TabsContent>
-        </Tabs>
+        <div className="w-full">
+          <FinanceTab />
+        </div>
       </div>
     </div>
   );

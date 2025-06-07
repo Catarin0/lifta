@@ -1,7 +1,6 @@
-export interface FinanceData {
+export interface UserDetails {
   totalBalance: number;
   monthlyIncome: number;
-  monthlyExpenses: number;
 }
 
 export interface Expense {
@@ -10,10 +9,4 @@ export interface Expense {
   value: number;
   description: string;
   date: string;
-}
-
-export interface HealthData {
-  dailySteps: number;
-  heartRate: number;
-  sleepHours: number;
 }

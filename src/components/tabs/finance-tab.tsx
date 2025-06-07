@@ -22,9 +22,9 @@ import { Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { 
-  updateFinanceData, 
-  getFinanceData, 
-  type FinanceData,
+  updateUserDetails, 
+  getUserDetails, 
+  type UserDetails,
   addExpense,
   getExpenses,
   deleteExpense,
@@ -32,10 +32,9 @@ import {
 } from "@/lib/firebase/db";
 
 export function FinanceTab() {
-  const [financeData, setFinanceData] = useState<FinanceData>({
+  const [userDetails, setUserDetails] = useState<UserDetails>({
     totalBalance: 0,
     monthlyIncome: 0,
-    monthlyExpenses: 0,
   });
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [newExpense, setNewExpense] = useState<Omit<Expense, 'id'>>({
@@ -63,20 +62,19 @@ export function FinanceTab() {
     const loadData = async () => {
       const userId = auth.currentUser?.uid;
       if (userId) {
-        const [finance, expenses] = await Promise.all([
-          getFinanceData(userId),
+        const [details, expensesList] = await Promise.all([
+          getUserDetails(userId),
           getExpenses(userId)
         ]);
         
-        if (finance) setFinanceData(finance);
-        setExpenses(expenses);
+        if (details) setUserDetails(details);
+        setExpenses(expensesList);
       }
     };
 
     loadData();
   }, []);
 
-  // Calculate filtered expenses total
   const filteredExpenses = expenses.filter(expense => {
     const expenseDate = new Date(expense.date);
     const matchesYear = expenseDate.getFullYear() === filters.year;
@@ -85,22 +83,13 @@ export function FinanceTab() {
     return matchesYear && matchesMonth && matchesCategory;
   });
 
-  const filteredTotal = filteredExpenses.reduce((sum, exp) => sum + exp.value, 0);
-
-  useEffect(() => {
-    setFinanceData(prev => ({
-      ...prev,
-      monthlyExpenses: filteredTotal
-    }));
-  }, [filters, filteredTotal]);
-
-  const handleSaveFinanceData = async () => {
+  const handleSaveUserDetails = async () => {
     const userId = auth.currentUser?.uid;
     if (!userId) return;
 
     setIsSaving(true);
     try {
-      await updateFinanceData(userId, financeData);
+      await updateUserDetails(userId, userDetails);
       setIsEditing(false);
     } catch (error) {
       console.error("Error saving data:", error);
@@ -125,22 +114,23 @@ export function FinanceTab() {
 
     try {
       setError(null);
-      console.log('Current user:', auth.currentUser);
-      console.log('Adding expense:', { ...newExpense });
+      // Check if user details exist first
+      const existingUserDetails = await getUserDetails(userId);
+      if (!existingUserDetails) {
+        // Initialize user details if they don't exist
+        await updateUserDetails(userId, {
+          totalBalance: 0,
+          monthlyIncome: 0
+        });
+      }
+      
       await addExpense(userId, newExpense);
       const updatedExpenses = await getExpenses(userId);
       setExpenses(updatedExpenses);
       
-      // Update monthly expenses
-      const totalExpenses = updatedExpenses.reduce((sum, exp) => sum + exp.value, 0);
-      setFinanceData(prev => ({
-        ...prev,
-        monthlyExpenses: totalExpenses
-      }));
-      await updateFinanceData(userId, {
-        ...financeData,
-        monthlyExpenses: totalExpenses
-      });
+      // Get updated user details after expense is added
+      const updatedUserDetails = await getUserDetails(userId);
+      if (updatedUserDetails) setUserDetails(updatedUserDetails);
 
       // Reset form
       setNewExpense({
@@ -171,25 +161,18 @@ export function FinanceTab() {
       const updatedExpenses = await getExpenses(userId);
       setExpenses(updatedExpenses);
       
-      // Update monthly expenses
-      const totalExpenses = updatedExpenses.reduce((sum, exp) => sum + exp.value, 0);
-      setFinanceData(prev => ({
-        ...prev,
-        monthlyExpenses: totalExpenses
-      }));
-      await updateFinanceData(userId, {
-        ...financeData,
-        monthlyExpenses: totalExpenses
-      });
+      // Get updated user details after expense is deleted
+      const updatedUserDetails = await getUserDetails(userId);
+      if (updatedUserDetails) setUserDetails(updatedUserDetails);
     } catch (error) {
       console.error("Error deleting expense:", error);
     }
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('de-DE', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'EUR',
     }).format(value);
   };
 
@@ -212,12 +195,12 @@ export function FinanceTab() {
                 {isEditing ? (
                   <Input
                     type="number"
-                    value={financeData.totalBalance}
-                    onChange={(e) => setFinanceData({ ...financeData, totalBalance: Number(e.target.value) })}
+                    value={userDetails.totalBalance}
+                    onChange={(e) => setUserDetails({ ...userDetails, totalBalance: Number(e.target.value) })}
                     className="mt-2"
                   />
                 ) : (
-                  <div className="text-2xl font-bold">{formatCurrency(financeData.totalBalance)}</div>
+                  <div className="text-2xl font-bold">{formatCurrency(userDetails.totalBalance)}</div>
                 )}
               </CardContent>
             </Card>
@@ -227,19 +210,19 @@ export function FinanceTab() {
                 {isEditing ? (
                   <Input
                     type="number"
-                    value={financeData.monthlyIncome}
-                    onChange={(e) => setFinanceData({ ...financeData, monthlyIncome: Number(e.target.value) })}
+                    value={userDetails.monthlyIncome}
+                    onChange={(e) => setUserDetails({ ...userDetails, monthlyIncome: Number(e.target.value) })}
                     className="mt-2"
                   />
                 ) : (
-                  <div className="text-2xl font-bold">{formatCurrency(financeData.monthlyIncome)}</div>
+                  <div className="text-2xl font-bold">{formatCurrency(userDetails.monthlyIncome)}</div>
                 )}
               </CardContent>
             </Card>
             <Card className="bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
               <CardContent className="p-4">
                 <div className="text-sm font-medium text-muted-foreground">Monthly Expenses</div>
-                <div className="text-2xl font-bold">{formatCurrency(financeData.monthlyExpenses)}</div>
+                <div className="text-2xl font-bold">{formatCurrency(filteredExpenses.reduce((sum, exp) => sum + exp.value, 0))}</div>
               </CardContent>
             </Card>
           </div>
@@ -248,7 +231,7 @@ export function FinanceTab() {
               <Button variant="outline" onClick={() => setIsEditing(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleSaveFinanceData} disabled={isSaving}>
+              <Button onClick={handleSaveUserDetails} disabled={isSaving}>
                 {isSaving ? "Saving..." : "Save"}
               </Button>
             </div>

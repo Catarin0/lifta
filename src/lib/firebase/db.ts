@@ -20,18 +20,18 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);
 
-import type { FinanceData, Expense, HealthData } from "./types";
+import type { UserDetails, Expense } from "./types";
 
-// Finance data operations
-export const updateFinanceData = async (userId: string, data: FinanceData) => {
-  const userFinanceRef = doc(db, "users", userId, "data", "finance");
-  await setDoc(userFinanceRef, data, { merge: true });
+// User details operations
+export const updateUserDetails = async (userId: string, data: UserDetails) => {
+  const userDetailsRef = doc(db, "users", userId, "user_details", "finance");
+  await setDoc(userDetailsRef, data, { merge: true });
 };
 
-export const getFinanceData = async (userId: string): Promise<FinanceData | null> => {
-  const userFinanceRef = doc(db, "users", userId, "data", "finance");
-  const docSnap = await getDoc(userFinanceRef);
-  return docSnap.exists() ? docSnap.data() as FinanceData : null;
+export const getUserDetails = async (userId: string): Promise<UserDetails | null> => {
+  const userDetailsRef = doc(db, "users", userId, "user_details", "finance");
+  const docSnap = await getDoc(userDetailsRef);
+  return docSnap.exists() ? docSnap.data() as UserDetails : null;
 };
 
 // Expense operations
@@ -44,6 +44,20 @@ export const addExpense = async (userId: string, expense: Omit<Expense, 'id'>) =
     description: expense.description,
     date: expense.date
   };
+  
+  // Get current user details
+  const userDetails = await getUserDetails(userId);
+  if (!userDetails) {
+    throw new Error("User details not found");
+  }
+
+  // Update total balance
+  const newBalance = userDetails.totalBalance - expenseData.value;
+  await updateUserDetails(userId, {
+    ...userDetails,
+    totalBalance: newBalance
+  });
+
   const docRef = await addDoc(expensesRef, expenseData);
   return docRef.id;
 };
@@ -59,20 +73,30 @@ export const getExpenses = async (userId: string): Promise<Expense[]> => {
 
 export const deleteExpense = async (userId: string, expenseId: string) => {
   const expenseRef = doc(db, "users", userId, "expenses", expenseId);
+  
+  // Get the expense value before deleting
+  const expenseDoc = await getDoc(expenseRef);
+  if (!expenseDoc.exists()) {
+    throw new Error("Expense not found");
+  }
+  
+  const expenseData = expenseDoc.data() as Expense;
+  
+  // Get current user details
+  const userDetails = await getUserDetails(userId);
+  if (!userDetails) {
+    throw new Error("User details not found");
+  }
+
+  // Update total balance
+  const newBalance = userDetails.totalBalance + expenseData.value;
+  await updateUserDetails(userId, {
+    ...userDetails,
+    totalBalance: newBalance
+  });
+
   await deleteDoc(expenseRef);
 };
 
-// Health data operations
-export const updateHealthData = async (userId: string, data: HealthData) => {
-  const userHealthRef = doc(db, "users", userId, "data", "health");
-  await setDoc(userHealthRef, data, { merge: true });
-};
-
-export const getHealthData = async (userId: string): Promise<HealthData | null> => {
-  const userHealthRef = doc(db, "users", userId, "data", "health");
-  const docSnap = await getDoc(userHealthRef);
-  return docSnap.exists() ? docSnap.data() as HealthData : null;
-};
-
 // Export types for use in components
-export type { FinanceData, HealthData, Expense };
+export type { UserDetails, Expense };

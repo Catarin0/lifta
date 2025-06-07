@@ -17,20 +17,12 @@ export const signUp = async (email: string, password: string) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
-    // Initialize user collections after signup
+    // Initialize user details after signup
     const userId = userCredential.user.uid;
-    await Promise.all([
-      setDoc(doc(db, "users", userId, "data", "finance"), {
-        totalBalance: 0,
-        monthlyIncome: 0,
-        monthlyExpenses: 0
-      }),
-      setDoc(doc(db, "users", userId, "data", "health"), {
-        dailySteps: 0,
-        heartRate: 0,
-        sleepHours: 0
-      })
-    ]);
+    await setDoc(doc(db, "users", userId, "user_details", "finance"), {
+      totalBalance: 0,
+      monthlyIncome: 0
+    });
 
     return { user: userCredential.user, error: null };
   } catch (error) {
