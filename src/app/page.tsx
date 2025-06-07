@@ -2,19 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { FinanceTab } from "@/components/tabs/finance-tab";
 import { auth, getCurrentUser } from "@/lib/firebase/auth";
+import { AvatarMenu } from "@/components/avatar-menu";
 import { onAuthStateChanged } from "firebase/auth";
+import { getUserDetails } from "@/lib/firebase/db";
 
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState(getCurrentUser());
+  const [firstName, setFirstName] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
+        // Load user details to get first name
+        getUserDetails(user.uid).then(details => {
+          if (details) {
+            setFirstName(details.firstName);
+          }
+        });
       } else {
         router.push("/login");
       }
@@ -22,11 +30,6 @@ export default function Home() {
 
     return () => unsubscribe();
   }, [router]);
-
-  const handleLogout = async () => {
-    await auth.signOut();
-    router.push("/login");
-  };
 
   if (!user) {
     return null;
@@ -38,9 +41,9 @@ export default function Home() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {user.email}</p>
+            <p className="text-muted-foreground">Welcome back, {firstName}</p>
           </div>
-          <Button variant="outline" onClick={handleLogout}>Sign Out</Button>
+          <AvatarMenu />
         </div>
         
         <div className="w-full">

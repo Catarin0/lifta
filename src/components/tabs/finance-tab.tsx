@@ -35,6 +35,8 @@ export function FinanceTab() {
   const [userDetails, setUserDetails] = useState<UserDetails>({
     totalBalance: 0,
     monthlyIncome: 0,
+    firstName: '',
+    lastName: '',
   });
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [newExpense, setNewExpense] = useState<Omit<Expense, 'id'>>({
@@ -120,7 +122,9 @@ export function FinanceTab() {
         // Initialize user details if they don't exist
         await updateUserDetails(userId, {
           totalBalance: 0,
-          monthlyIncome: 0
+          monthlyIncome: 0,
+          firstName: '',
+          lastName: ''
         });
       }
       

@@ -13,7 +13,14 @@ const auth = getAuth(app);
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "./db";
 
-export const signUp = async (email: string, password: string) => {
+interface SignUpData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export const signUp = async ({ email, password, firstName, lastName }: SignUpData) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
@@ -21,7 +28,9 @@ export const signUp = async (email: string, password: string) => {
     const userId = userCredential.user.uid;
     await setDoc(doc(db, "users", userId, "user_details", "finance"), {
       totalBalance: 0,
-      monthlyIncome: 0
+      monthlyIncome: 0,
+      firstName,
+      lastName
     });
 
     return { user: userCredential.user, error: null };

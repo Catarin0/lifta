@@ -1,6 +1,8 @@
 export interface UserDetails {
   totalBalance: number;
   monthlyIncome: number;
+  firstName: string;
+  lastName: string;
 }
 
 export interface Expense {

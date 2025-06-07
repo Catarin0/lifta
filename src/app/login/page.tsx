@@ -11,6 +11,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
@@ -21,7 +23,7 @@ export default function LoginPage() {
     setError("");
 
     const { user, error: authError } = await (isSignUp 
-      ? signUp(email, password)
+      ? signUp({ email, password, firstName, lastName })
       : signIn(email, password)
     );
 
@@ -52,6 +54,32 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              {isSignUp && (
+                <>
+                  <Input
+                    type="text"
+                    placeholder="First Name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                  />
+                </>
+              )}
+            </div>
+            <div className="space-y-2">
+              {isSignUp && (
+                <>
+                  <Input
+                    type="text"
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                  />
+                </>
+              )}
+            </div>
             <div className="space-y-2">
               <Input
                 type="email"
